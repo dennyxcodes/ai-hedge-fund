@@ -31,6 +31,8 @@ class ModelProvider(str, Enum):
     GIGACHAT = "GigaChat"
     AZURE_OPENAI = "Azure OpenAI"
     XAI = "xAI"
+    # CometAPI provides access to 500+ models via an OpenAI-compatible endpoint
+    COMETAPI = "CometAPI"
 
 
 class LLMModel(BaseModel):
@@ -151,6 +153,14 @@ def get_model(model_name: str, model_provider: ModelProvider, api_keys: dict = N
             # Print error to console
             print(f"API Key Error: Please make sure OPENAI_API_KEY is set in your .env file or provided via API keys.")
             raise ValueError("OpenAI API key not found.  Please make sure OPENAI_API_KEY is set in your .env file or provided via API keys.")
+        return ChatOpenAI(model=model_name, api_key=api_key, base_url=base_url)
+    elif model_provider == ModelProvider.COMETAPI:
+        # CometAPI is OpenAI-compatible; users can supply a custom base URL if desired
+        api_key = (api_keys or {}).get("COMET_API_KEY") or os.getenv("COMET_API_KEY")
+        base_url = os.getenv("COMET_API_BASE")
+        if not api_key:
+            print(f"API Key Error: Please make sure COMET_API_KEY is set in your .env file or provided via API keys.")
+            raise ValueError("CometAPI key not found. Please make sure COMET_API_KEY is set in your .env file or provided via API keys.")
         return ChatOpenAI(model=model_name, api_key=api_key, base_url=base_url)
     elif model_provider == ModelProvider.ANTHROPIC:
         api_key = (api_keys or {}).get("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
